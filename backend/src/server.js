@@ -12,38 +12,12 @@ const errorHandler = require('./middleware/errorHandler');
 dotenv.config();
 const app = express();
 
-const allowedOrigins = [
-	process.env.CORS_ORIGIN,
-	process.env.FRONTEND_URL,
-	'http://localhost:5173',
-	'http://localhost:3000',
-].filter(Boolean);
+// 1. Simplified CORS to allow all origins
+app.use(cors()); 
 
-const isAllowedOrigin = (origin) => {
-	if (allowedOrigins.includes(origin)) {
-		return true;
-	}
+// 2. Handle preflight requests for all routes
+app.options('*', cors());
 
-	return /^https:\/\/[a-z0-9-]+(?:-[a-z0-9-]+)*\.vercel\.app$/i.test(origin);
-};
-
-const corsOptions = {
-	origin(origin, callback) {
-		if (!origin) {
-			return callback(null, true);
-		}
-
-		return isAllowedOrigin(origin)
-			? callback(null, true)
-			: callback(null, false);
-	},
-	methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-	allowedHeaders: ['Content-Type', 'Authorization'],
-	optionsSuccessStatus: 204,
-};
-
-app.use(cors(corsOptions));
-app.options('*', cors(corsOptions));
 app.use(express.json());
 
 connectDB();
