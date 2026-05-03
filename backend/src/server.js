@@ -12,7 +12,39 @@ const errorHandler = require('./middleware/errorHandler');
 dotenv.config();
 const app = express();
 
-app.use(cors());
+const allowedOrigins = [
+	process.env.CORS_ORIGIN,
+	process.env.FRONTEND_URL,
+	'http://localhost:5173',
+	'http://localhost:3000',
+	'https://*.vercel.app',
+].filter(Boolean);
+
+const corsOptions = {
+	origin(origin, callback) {
+		if (!origin) {
+			return callback(null, true);
+		}
+
+		const isAllowed = allowedOrigins.some((allowedOrigin) => {
+			if (allowedOrigin === 'https://*.vercel.app') {
+				return /^https:\/\/[a-z0-9-]+\.vercel\.app$/i.test(origin);
+			}
+
+			return allowedOrigin === origin;
+		});
+
+		return isAllowed
+			? callback(null, true)
+			: callback(new Error('CORS blocked for this origin'));
+	},
+	methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+	allowedHeaders: ['Content-Type', 'Authorization'],
+	optionsSuccessStatus: 204,
+};
+
+app.use(cors(corsOptions));
+app.options('*', cors(corsOptions));
 app.use(express.json());
 
 connectDB();
