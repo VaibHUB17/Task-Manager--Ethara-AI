@@ -17,8 +17,15 @@ const allowedOrigins = [
 	process.env.FRONTEND_URL,
 	'http://localhost:5173',
 	'http://localhost:3000',
-	'https://*.vercel.app',
 ].filter(Boolean);
+
+const isAllowedOrigin = (origin) => {
+	if (allowedOrigins.includes(origin)) {
+		return true;
+	}
+
+	return /^https:\/\/[a-z0-9-]+(?:-[a-z0-9-]+)*\.vercel\.app$/i.test(origin);
+};
 
 const corsOptions = {
 	origin(origin, callback) {
@@ -26,17 +33,9 @@ const corsOptions = {
 			return callback(null, true);
 		}
 
-		const isAllowed = allowedOrigins.some((allowedOrigin) => {
-			if (allowedOrigin === 'https://*.vercel.app') {
-				return /^https:\/\/[a-z0-9-]+\.vercel\.app$/i.test(origin);
-			}
-
-			return allowedOrigin === origin;
-		});
-
-		return isAllowed
+		return isAllowedOrigin(origin)
 			? callback(null, true)
-			: callback(new Error('CORS blocked for this origin'));
+			: callback(null, false);
 	},
 	methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
 	allowedHeaders: ['Content-Type', 'Authorization'],
