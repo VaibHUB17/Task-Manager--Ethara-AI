@@ -1,34 +1,105 @@
 const express = require('express');
 const cors = require('cors');
 const dotenv = require('dotenv');
+
 const connectDB = require('./config/db');
+
 const authRoutes = require('./routes/authRoutes');
 const projectRoutes = require('./routes/projectRoutes');
 const userRoutes = require('./routes/userRoutes');
 const taskRoutes = require('./routes/taskRoutes');
 const dashboardRoutes = require('./routes/dashboardRoutes');
+
 const errorHandler = require('./middleware/errorHandler');
 
 dotenv.config();
+
 const app = express();
 
-// 1. Simplified CORS to allow all origins
-app.use(cors()); 
+/**
+ * ✅ CORS CONFIG (robust)
+ */
+const corsOptions = {
+  origin: '*', // change to frontend URL if using credentials
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+};
 
-// 2. Handle preflight requests for all routes
-app.options('*', cors());
+app.use(cors(corsOptions));
 
+/**
+ * ✅ Extra safety headers (helps when cors package fails silently)
+ */
+app.use((req, res, next) => {
+  res.header('Access-Control-Allow-Origin', '*');
+  res.header(
+    'Access-Control-Allow-Headers',
+    'Origin, X-Requested-With, Content-Type, Accept, Authorization'
+  );
+  res.header(
+    'Access-Control-Allow-Methods',
+    'GET, POST, PUT, DELETE, PATCH, OPTIONS'
+  );
+
+  // Handle preflight manually
+  if (req.method === 'OPTIONS') {
+    return res.sendStatus(200);
+  }
+
+  next();
+});
+
+/**
+ * ✅ Body parser
+ */
 app.use(express.json());
 
+/**
+ * ✅ DB connection
+ */
 connectDB();
 
+/**
+ * ✅ Test route (for debugging CORS)
+ */
+app.get('/test', (req, res) => {
+  res.json({ message: 'CORS is working ✅' });
+});
+
+/**
+ * ✅ Routes
+ */
 app.use('/api/auth', authRoutes);
 app.use('/api/projects', projectRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/tasks', taskRoutes);
 app.use('/api/dashboard', dashboardRoutes);
 
-app.use(errorHandler);
+/**
+ * ❗ 404 handler (important)
+ */
+app.use((req, res) => {
+  res.status(404).json({ message: 'Route not found' });
+});
 
+/**
+ * ❗ Error handler (must include CORS headers)
+ */
+app.use((err, req, res, next) => {
+  res.header('Access-Control-Allow-Origin', '*');
+
+  console.error(err);
+
+  res.status(err.status || 500).json({
+    message: err.message || 'Server Error',
+  });
+});
+
+/**
+ * ✅ Server start
+ */
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+
+app.listen(PORT, () => {
+  console.log(`🚀 Server running on port ${PORT}`);
+});
