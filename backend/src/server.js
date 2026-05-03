@@ -28,28 +28,6 @@ const corsOptions = {
 app.use(cors(corsOptions));
 
 /**
- * ✅ Extra safety headers (helps when cors package fails silently)
- */
-app.use((req, res, next) => {
-  res.header('Access-Control-Allow-Origin', '*');
-  res.header(
-    'Access-Control-Allow-Headers',
-    'Origin, X-Requested-With, Content-Type, Accept, Authorization'
-  );
-  res.header(
-    'Access-Control-Allow-Methods',
-    'GET, POST, PUT, DELETE, PATCH, OPTIONS'
-  );
-
-  // Handle preflight manually
-  if (req.method === 'OPTIONS') {
-    return res.sendStatus(200);
-  }
-
-  next();
-});
-
-/**
  * ✅ Body parser
  */
 app.use(express.json());
