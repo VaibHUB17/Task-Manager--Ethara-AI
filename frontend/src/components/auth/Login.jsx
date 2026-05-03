@@ -17,6 +17,7 @@ export default function Login(){
 
   const submit = async e => {
     e.preventDefault()
+    setError(null)
     setSubmitting(true)
     try{
       const res = await api.post('/auth/login',{ email, password })
@@ -47,8 +48,8 @@ export default function Login(){
         <h2 className="font-display text-2xl font-semibold tracking-tight text-dark-900">Welcome back</h2>
         <p className="mb-5 mt-1 text-sm text-dark-500">Sign in to continue managing your team tasks.</p>
         <form onSubmit={submit} className="space-y-3">
-          <Input label="Email" placeholder="admin1@example.com" value={email} onChange={e=>setEmail(e.target.value)} error={error} />
-          <Input type="password" label="Password" placeholder="Enter password" value={password} onChange={e=>setPassword(e.target.value)} />
+          <Input label="Email" placeholder="admin1@example.com" value={email} onChange={e=>{ setEmail(e.target.value); if (error) setError(null) }} error={error} />
+          <Input type="password" label="Password" placeholder="Enter password" value={password} onChange={e=>{ setPassword(e.target.value); if (error) setError(null) }} />
           <Button className="w-full" loading={submitting}>Login</Button>
         </form>
         </Card>
